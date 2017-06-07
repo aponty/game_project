@@ -1,0 +1,32 @@
+body {
+  background-color: white;
+}
+
+.gamewindow {
+  height: 50vh;
+  width: 50vw;
+  margin: 20vh auto;
+  background-color: white;
+  position: relative;
+  border: 2px solid black;
+  /*border-radius: 5px;*/
+}
+
+.paddle {
+  background-color: black;
+  height: 2%;
+  width: 40%;
+  position: absolute;
+  top: 100%;
+  left: 0%;
+}
+
+.ball {
+  background-color: black;
+  height: 2%;
+  width: 2%;
+  border-radius: 100%;
+  position: absolute;
+  top: 50%;
+  left: 0%;
+}
