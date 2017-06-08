@@ -47,14 +47,17 @@ document.addEventListener('keyup', removeKey);
 
 //TODO need to add random generation. In batches (levels) or just running.
 function setBoard() {
-  assets.forEach((x, i) => { //change to some counter that 10x (can increment by level) goes and pulls random index from array
-    var brick = document.createElement('div');
-    brick.setAttribute('class', `brick ${assets[i].class}`);
-    brick.style.backgroundImage = 'url("' + assets[i].url + '")';
-    brick.style.top = Math.random() * 300 + 'px';
-    brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
-    gameFrame.appendChild(brick);
-  })
+  var timesToIterateAssets = 10;
+  for (var j = 0; j < timesToIterateAssets; j++) {
+    for (var i = 0; i < assets.length; i++) {
+      var brick = document.createElement('div');
+      brick.setAttribute('class', `brick ${assets[i].class}`);
+      brick.style.backgroundImage = 'url("' + assets[i].url + '")';
+      brick.style.top = Math.random() * 300 + 'px';
+      brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
+      gameFrame.appendChild(brick);
+    }
+  }
 };
 
 setBoard();
@@ -90,27 +93,30 @@ function ballPaddleCollisionCheck() {
   }
 }
 
-//TODO add an if not on right edge condition or if not on left edge spin
 function spinCheck() {
   var z = Math.sqrt((Math.pow(ballHorVelocity, 2) + Math.pow(ballVertVelocity, 2) - Math.pow(.75 * ballVertVelocity, 2)) / Math.pow(ballHorVelocity, 2))
   var m = Math.sqrt((Math.pow(ballVertVelocity, 2) + Math.pow(ballHorVelocity, 2) - Math.pow(.75 * ballHorVelocity, 2)) / Math.pow(ballVertVelocity, 2))
 
-  if (keys[39] && ballHorVelocity > 0) {
+  //if paddle right and ball right
+  if (keys[39] && paddleLeft < 675 && ballHorVelocity > 0) {
     ballVertVelocity *= .75
     ballHorVelocity *= z
     console.log('spun flat')
   }
-  if (keys[39] && ballHorVelocity < 0) {
+  //if paddle right and ball left
+  if (keys[39] && paddleLeft < 675 && ballHorVelocity < 0) {
     ballVertVelocity *= m
     ballHorVelocity *= .75
     console.log('spun up')
   }
-  if (keys[37] && ballHorVelocity > 0) {
+  //if paddle left and ball right
+  if (keys[37] && paddleLeft >= 1 && ballHorVelocity > 0) {
     ballVertVelocity *= m
     ballHorVelocity *= .75
     console.log('spun up')
   }
-  if (keys[37] && ballHorVelocity < 0) {
+  //if paddle left and ball left
+  if (keys[37] && paddleLeft >= 1 && ballHorVelocity < 0) {
     ballVertVelocity *= .75
     ballHorVelocity *= z
     console.log('spun flat')
@@ -131,16 +137,28 @@ function moveAndBounceBall() {
   };
 }
 
-//TODO Need to add horizontal bounce off the sides.
 function ballBrickCollisionCheck() {
   document.querySelectorAll('.brick').forEach(x => {
     var top = parseFloat(x.style.top.split('px')[0])
     var left = parseFloat(x.style.left.split('px')[0])
     var right = widthByClass[x.classList[1]]
-    if (ballVertPos <= (top + 50) && ballVertPos >= top && ballHorPos >= left && ballHorPos <= left + right) {
+    //left edge. Sequence of elses is arbitrary; leaving them as naked ifs led to multiple delete attempts on some corner strikes
+    if (ballHorPos >= left && ballHorPos <= (left + 10) && ballVertPos >= top && ballVertPos <= (top + 50)) {
       x.parentNode.removeChild(x);
-      ballVertVelocity = -ballVertVelocity;
-    }
+      ballHorVelocity = -ballHorVelocity;
+    } else //bottom edge. Need to pick edges specifically to bounce horizontal/vert. === to bottom edge gets jumped over. Added 10px fuzz
+      if (ballVertPos <= (top + 50) && ballVertPos >= (top + 40) && ballHorPos >= left && ballHorPos <= (left + right)) {
+        x.parentNode.removeChild(x);
+        ballVertVelocity = -ballVertVelocity;
+      } else //right edge
+        if (ballHorPos <= (left + right) && ballHorPos >= (left + right - 10) && ballVertPos >= top && ballVertPos <= (top + 50)) {
+          x.parentNode.removeChild(x);
+          ballHorVelocity = -ballHorVelocity;
+        } else //top edge
+          if (ballVertPos >= top && ballVertPos <= (top + 10) && ballHorPos >= left && ballHorPos <= (left + right)) {
+            x.parentNode.removeChild(x);
+            ballVertVelocity = -ballVertVelocity;
+          }
   })
 }
 
@@ -153,10 +171,8 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-requestAnimationFrame(gameLoop);
-
-
-
+// requestAnimationFrame(gameLoop);
+// var gameStart = setInterval(gameLoop, 17)
 
 
 
