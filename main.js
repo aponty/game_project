@@ -34,11 +34,30 @@ var assets = [{
     width: 300
   }
 ];
+var widthByClass = {
+  hash: 70,
+  amp: 140,
+  percent: 190,
+  asterisk: 300
+};
 var keys = {}
 
-
 document.addEventListener('keydown', addKey);
-document.addEventListener('keyup', removeKey)
+document.addEventListener('keyup', removeKey);
+
+//TODO need to add random generation. In batches (levels) or just running.
+function setBoard() {
+  assets.forEach((x, i) => { //change to some counter that 10x (can increment by level) goes and pulls random index from array
+    var brick = document.createElement('div');
+    brick.setAttribute('class', `brick ${assets[i].class}`);
+    brick.style.backgroundImage = 'url("' + assets[i].url + '")';
+    brick.style.top = Math.random() * 300 + 'px';
+    brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
+    gameFrame.appendChild(brick);
+  })
+};
+
+setBoard();
 
 function addKey(x) {
   keys[x.which] = true;
@@ -63,18 +82,19 @@ function movePaddleRight() {
 }
 
 function ballPaddleCollisionCheck() {
-  if (ballVertPos >= 583) {
+  if (ballVertPos === 585) {
     if (ballHorPos >= paddleLeft && ballHorPos <= paddleLeft + 125) {
+      console.log('call spincheck')
       spinCheck();
     }
   }
 }
 
+//TODO add an if not on right edge condition or if not on left edge spin
 function spinCheck() {
   var z = Math.sqrt((Math.pow(ballHorVelocity, 2) + Math.pow(ballVertVelocity, 2) - Math.pow(.75 * ballVertVelocity, 2)) / Math.pow(ballHorVelocity, 2))
   var m = Math.sqrt((Math.pow(ballVertVelocity, 2) + Math.pow(ballHorVelocity, 2) - Math.pow(.75 * ballHorVelocity, 2)) / Math.pow(ballVertVelocity, 2))
 
-  // add an if not on right edge condition or if not on left edge spin
   if (keys[39] && ballHorVelocity > 0) {
     ballVertVelocity *= .75
     ballHorVelocity *= z
@@ -102,23 +122,22 @@ function moveAndBounceBall() {
   ball.style.top = ballVertPos + 'px';
   ballHorPos += ballHorVelocity;
   ballVertPos += ballVertVelocity;
-  if (ballHorPos <= 0 || ballHorPos >= 794) {  // horizontal
+  if (ballHorPos <= 0 || ballHorPos >= 795) { // horizontal
     ballHorVelocity = -ballHorVelocity;
   };
-  if (ballVertPos <= 0 || ballVertPos >= 583) { //vertical
+  if (ballVertPos <= 0 || ballVertPos >= 585) { //vertical
     ballVertVelocity = -ballVertVelocity;
 
   };
 }
 
-
-//TODO need to get left + length from array/classname somehow. Then need to add horizontal bounce off the sides. (should be easier)
+//TODO Need to add horizontal bounce off the sides.
 function ballBrickCollisionCheck() {
   document.querySelectorAll('.brick').forEach(x => {
     var top = parseFloat(x.style.top.split('px')[0])
     var left = parseFloat(x.style.left.split('px')[0])
-    var right = ''; //something with x.classList[1] and an object
-    if (ballVertPos <= (top + 50) && ballVertPos >= top && ballHorPos >= left && ballHorPos <= left + 200 ) {
+    var right = widthByClass[x.classList[1]]
+    if (ballVertPos <= (top + 50) && ballVertPos >= top && ballHorPos >= left && ballHorPos <= left + right) {
       x.parentNode.removeChild(x);
       ballVertVelocity = -ballVertVelocity;
     }
@@ -138,17 +157,6 @@ requestAnimationFrame(gameLoop);
 
 
 
-function setBoard() {
-  assets.forEach((x, i) => { //change to some counter that 10x (can increment by level) goes and pulls random index from array
-    var brick = document.createElement('div');
-    brick.setAttribute('class', `brick ${assets[i].class}`);
-    brick.style.backgroundImage = 'url("' + assets[i].url + '")';
-    brick.style.top = Math.random() * 300 + 'px';
-    brick.style.left = Math.random() * (500 - assets[i].width) + 'px';
-    gameFrame.appendChild(brick);
-  })
-}
-setBoard();
 
 
 
