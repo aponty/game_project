@@ -1,16 +1,42 @@
 body {
   background-color: white;
+  font-family: courier;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
+header {
+  font-size: 75px;
+}
+h2 {
+  margin-top: 40px;
+  text-align: center;
+}
+h3 {
+  font-size: 15px;
+  font-weight: normal;
+  font-style: italic;
+}
+p {
+  font-size: 13px;
+  font-style: italic;
+}
+button {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: white;
+}
 .gamewindow {
   height: 600px;
   width: 800px;
-  margin: 10vh auto;
+  margin: 75px auto;
   background-color: white;
   position: relative;
   border: 2px solid black;
   padding-right: 4px;
   border-radius: 5px;
+  text-align: center;
 }
 
 .paddle {
@@ -20,6 +46,7 @@ body {
   width: 125px;
   top: 590px;
   left: 0;
+  display: none;
 }
 
 .ball {
@@ -30,6 +57,7 @@ body {
   position: absolute;
   top: 560px;
   left: 0;
+  display: none;
 }
 
 .brick {
@@ -52,4 +80,33 @@ body {
 }
 .hash {
   width: 70px;
+}
+footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  font-size: 10px;
+  display: block;
+}
+
+footer .small-warning {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  footer {
+    font-size: 60px;
+    margin-top: 50px;
+    background: rgba(0,0,0,.8)
+  }
+
+  footer .full {
+    display: none;
+  }
+  footer .small-warning {
+    display: block;
+    color: white;
+  }
 }
