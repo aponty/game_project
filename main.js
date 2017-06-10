@@ -8,10 +8,10 @@ $(function() {
   var gameFrame = document.querySelector('.gamewindow');
   var paddle = document.querySelector('.paddle');
   var paddleLeft = 0;
-  var paddleVelocity = 7; //7
+  var paddleVelocity = 7; //7, 8 isn't perfect but ok enough
   var ball = document.querySelector('.ball');
   var ballVertPos = 560;
-  var ballVertVelocity = 5; //5
+  var ballVertVelocity = 5; //5 can't change, jumps borders
   var ballHorPos = 0;
   var ballHorVelocity = 5; //5
   var assets = [{
@@ -46,9 +46,10 @@ $(function() {
   var score = 0;
   var lives;
   var livesDisplay = document.querySelectorAll('span')[1];
-  var livesString = '' //purely stylistic
   var timesFourForBrickNumber = 5;
   var currentLevel = 1
+  var levelsSkipped = []
+  var infiniteLevelSetBoardInt; //if I name it inside a function I can't cancle it
 
   document.addEventListener('keydown', addKeyAndSpaceStartPause);
   document.addEventListener('keyup', removeKey);
@@ -56,55 +57,23 @@ $(function() {
   document.querySelectorAll('h2')[0].addEventListener('click', clickStart) //start on one by default
   document.querySelectorAll('h2')[1].addEventListener('click', function () { //start on two
     currentLevel = 2;
+    levelsSkipped.push(1);
     clickStart();
   })
-  document.querySelectorAll('h2')[2].addEventListener('click', function () {
+  document.querySelectorAll('h2')[2].addEventListener('click', function () { //on three
     currentLevel = 3;
+    levelsSkipped.push(1);
+    levelsSkipped.push(2);
+    console.log(levelsSkipped)
     clickStart();
   })
-
-  function setLevel() {
-    document.querySelectorAll('span')[0].textContent = 'Level: ' + currentLevel;
-    if (currentLevel === 1) {
-      timesFourForBrickNumber = 1;  //score is 20
-      paddleVelocity = 7;
-      ballVertVelocity = 5;
-      ballHorVelocity = 5;
-      lives = 4;
-    }
-    if (currentLevel === 2) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
-      timesFourForBrickNumber = 3;  //score is 60
-      paddleVelocity = 6;
-      ballVertVelocity = 5;
-      ballHorVelocity = 5;
-      lives = 3;
-    }
-    if (currentLevel === 3) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
-      timesFourForBrickNumber = 10;  //score is 200
-      paddleVelocity = 8;
-      ballVertVelocity = 5;
-      ballHorVelocity = 5;
-      lives = 2;
-    }
-    for (var i=0; i<lives; i++) {
-      livesString += '@'
-    }
-    livesDisplay.textContent = 'Lives: ' + livesString;
-    startGame();
-  }
-
-  function setBoard() {
-    for (var j = 0; j < timesFourForBrickNumber; j++) {
-      for (var i = 0; i < assets.length; i++) {
-        var brick = document.createElement('div');
-        brick.setAttribute('class', `brick ${assets[i].class}`);
-        brick.style.backgroundImage = 'url("' + assets[i].url + '")';
-        brick.style.top = Math.random() * 275 + 'px';
-        brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
-        gameFrame.appendChild(brick);
-      }
-    }
-  };
+  document.querySelectorAll('h2')[3].addEventListener('click', function () { //infinite
+    currentLevel = 'Infinite';
+    levelsSkipped.push(1);
+    levelsSkipped.push(2);
+    levelsSkipped.push(3);
+    clickStart();
+  })
 
   function addKeyAndSpaceStartPause(x) {
     keys[x.which] = true; //adds keys to keys object (keylogger)
@@ -112,8 +81,7 @@ $(function() {
     if (x.which === 32) { //start/pause w/ spacebar. If this listener callback grows I'll separate things out
       if (startPause === 'never been run') {
         setLevel();
-        // startGame();
-        startPause = 'run';
+        // startPause = 'run';
       } else if (startPause === 'run') {
         startPause = 'stop';
       } else if (startPause === 'stop') {
@@ -128,7 +96,89 @@ $(function() {
       document.querySelector('button').setAttribute('class', 'animate');
       document.querySelector('.landing').setAttribute('class', 'landing animate');
       setTimeout(setLevel, 1500);
+      // startPause = 'run';
+    }
+  };
+
+  function setLevel() {
+    document.querySelectorAll('span')[0].textContent = 'Level: ' + currentLevel;
+    if (currentLevel === 1) {
+      timesFourForBrickNumber = 1;  //score is 20
+      paddleVelocity = 7;
+      ballVertVelocity = 5;
+      ballHorVelocity = 5;
+      lives = 4;
+
+    }
+    if (currentLevel === 2) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
+      paddle.style.left = '0px' //Paddle only positioned when keydown is registered
+      paddleLeft = 0
+      timesFourForBrickNumber = 3;  //score is 60
+      paddleVelocity = 6;
+      ballVertVelocity = -5;
+      ballHorVelocity = 5;
+      lives = 3;
+      ballVertPos = 560;
+      ballHorPos = 0;
+    }
+    if (currentLevel === 3) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
+      paddle.style.left = '0px'
+      paddleLeft = 0;
+      timesFourForBrickNumber = 10;  //score is 200
+      paddleVelocity = 8;
+      ballVertVelocity = -5;
+      ballHorVelocity = 5;
+      lives = 2;
+      ballVertPos = 560;
+      ballHorPos = 0;
+    }
+    if (currentLevel === 'Infinite') {
+      paddle.style.left = '0px'
+      paddleLeft = 0;
+      timesFourForBrickNumber = 2;
+      paddleVelocity = 8;
+      ballVertVelocity = -5;
+      ballHorVelocity = 5;
+      lives = 3;
+      ballVertPos = 560;
+      ballHorPos = 0;
+      infiniteLevelSetBoardInt = setInterval(function () {
+        setBoard();
+      }, 5000);
+    }
+    var livesString = ""
+    for (var i=0; i<lives; i++) {
+      livesString += '@';
+    }
+    livesDisplay.textContent = 'Lives: ' +  livesString;
+    startGameAnimation();
+  }
+
+  function startGameAnimation() {
+    document.querySelector('.landing').style.display = 'none'
+    document.querySelector('.stats').style.display = 'block'
+    paddle.style.display = 'block';
+    ball.style.display = 'block';
+    setBoard();
+    if (startPause === 'never been run') {
       startPause = 'run';
+      requestAnimationFrame(gameLoop);
+    }
+    if (startPause === 'stop') {
+      startPause = 'run'
+    }
+  };
+
+  function setBoard() {
+    for (var j = 0; j < timesFourForBrickNumber; j++) {
+      for (var i = 0; i < assets.length; i++) {
+        var brick = document.createElement('div');
+        brick.setAttribute('class', `brick ${assets[i].class}`);
+        brick.style.backgroundImage = 'url("' + assets[i].url + '")';
+        brick.style.top = Math.random() * 275 + 'px';
+        brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
+        gameFrame.appendChild(brick);
+      }
     }
   };
 
@@ -151,7 +201,7 @@ $(function() {
   };
 
   function ballPaddleCollisionCheck() {
-    if (ballVertPos === 585) {
+    if (ballVertPos >= 585) {
       if (ballHorPos >= paddleLeft && ballHorPos <= paddleLeft + 125) {
         console.log('collision! call spincheck');
         spinCheck();
@@ -238,37 +288,51 @@ $(function() {
     })
   };
 
-  function scoreTracker() {
+  function drawScore() {
     document.querySelectorAll('span')[2].textContent = 'Score: ' + score;
   }
 
-  function startGame() {
-    document.querySelector('.landing').style.display = 'none'
-    document.querySelector('.stats').style.display = 'block'
-    paddle.style.display = 'block';
-    ball.style.display = 'block';
-    setBoard();
-    requestAnimationFrame(gameLoop);
-    // var gameStart = setInterval(gameLoop, 17)  alt start for leveling. Can easily change speed w/out affecting math, but laggy
-  };
-  // startGame(); second part of comment above
-
-  function endGameCheck() {   //cue score screen here
+  function endGameNextLevelCheck() {   //cue score screen here
     if (lives < 0) {
-      livesDisplay.textContent = 'Lives: ' + 'DEAD'
-      startPause = 'stop'
+      livesDisplay.textContent = 'Lives: ' + 'DEAD';
+      startPause = 'stop';
+      clearInterval(infiniteLevelSetBoardInt)
+    }
+    if (score === 20 && currentLevel === 1) {
+      startPause = 'stop';
+      setTimeout(function () {
+        currentLevel = 2;
+        setLevel();
+      }, 2000)
+    }
+    if (score === 80 && currentLevel === 2 ||
+      currentLevel === 2 && levelsSkipped[0] === 1 && score === 60) { //starting at two
+      startPause = 'stop';
+      setTimeout(function () {
+        currentLevel = 3;
+        setLevel();
+      }, 2000)
+    }
+    if (score === 280 && currentLevel === 3 ||
+      score === 260 && levelsSkipped.length === 1 && currentLevel === 3 || //start at 2
+      score === 200 && levelsSkipped.length === 2 && currentLevel === 3) { //start at three
+      startPause = 'stop';
+      setTimeout(function () {
+        currentLevel = 'Infinite';
+        setLevel();
+      }, 2000)
     }
   }
 
   function gameLoop() {
     if (startPause === 'run') {
-      endGameCheck();
+      endGameNextLevelCheck();
       movePaddleLeft();
       movePaddleRight();
       moveAndBounceBall();
       ballPaddleCollisionCheck();
       ballBrickCollisionCheck();
-      scoreTracker();
+      drawScore();
     }
     requestAnimationFrame(gameLoop);
   };
