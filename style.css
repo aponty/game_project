@@ -4,18 +4,21 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  margin: 0;
 }
 
-.score {
+.stats {
   position: absolute;
   height: 50px;
-  width: 50px;
+  width: 150px;
   display: block;
-  text-align: right;
-  right: 300px;
-
-
+  text-align: left;
+  right: 100px;
+  font-size: 12px;
+  padding-top: 2px;
+  display: none;
 }
+
 header {
   font-size: 75px;
 }
@@ -169,29 +172,28 @@ footer {
   text-align: center;
   font-size: 10px;
   display: block;
+  padding-bottom: 5px;
 }
 
-h5 {
-  font-weight: normal;
-  margin: 0 auto;
-  line-height: 2px;
+footer a {
+  text-decoration: none;
 }
 
 footer .small-warning {
   display: none;
 }
-/*
+
 @media (max-width: 800px) {
   footer {
     font-size: 60px;
     margin-top: 50px;
     background: rgba(0, 0, 0, .8)
   }
-  footer .full {
+  footer a {
     display: none;
   }
   footer .small-warning {
     display: block;
     color: white;
   }
-}*/
+}
