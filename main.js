@@ -103,7 +103,7 @@ $(function() {
   function setLevel() {
     document.querySelectorAll('span')[0].textContent = 'Level: ' + currentLevel;
     if (currentLevel === 1) {
-      timesFourForBrickNumber = 1;  //score is 20
+      timesFourForBrickNumber = 2500;  //score is 20
       paddleVelocity = 7;
       ballVertVelocity = 5;
       ballHorVelocity = 5;
@@ -293,12 +293,12 @@ $(function() {
   }
 
   function endGameNextLevelCheck() {   //cue score screen here
-    if (lives < 0) {
-      livesDisplay.textContent = 'Lives: ' + 'DEAD';
-      startPause = 'stop';
-      clearInterval(infiniteLevelSetBoardInt)
-    }
-    if (score === 20 && currentLevel === 1) {
+    // if (lives < 0) {
+    //   livesDisplay.textContent = 'Lives: ' + 'DEAD';
+    //   startPause = 'stop';
+    //   clearInterval(infiniteLevelSetBoardInt)
+    // }
+    if (score === 200000000 && currentLevel === 1) { //20
       startPause = 'stop';
       setTimeout(function () {
         currentLevel = 2;
