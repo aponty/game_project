@@ -1,19 +1,15 @@
 $(function() {
-
-  //TODO: menu. Final screen. Score keeping (local storage)
-  //acceleration with time?
   // help with cleaning up oscilation logic from  here http://isaacsukin.com/news/2015/01/detailed-explanation-javascript-game-loops-and-timing
   //and keypress object and controlling everthing in a gameLogic fn set to interval here- https://stackoverflow.com/questions/13538168/is-it-possible-to-make-jquery-keydown-respond-faster
-
-  var gameFrame = document.querySelector('.gamewindow');
+  var $gameFrame = $('.gamewindow')
   var paddle = document.querySelector('.paddle');
   var paddleLeft = 0;
-  var paddleVelocity = 7; //7, 8 isn't perfect but ok enough
+  var paddleVelocity = 7; //ok to change a little
   var ball = document.querySelector('.ball');
   var ballVertPos = 560;
-  var ballVertVelocity = 5; //5 can't change, jumps borders
+  var ballVertVelocity = 5; //can't change, jumps borders
   var ballHorPos = 0;
-  var ballHorVelocity = 5; //5
+  var ballHorVelocity = 5; //can't change, jumps borders
   var assets = [{
       class: 'hash',
       url: './assets/2hash.png',
@@ -35,7 +31,7 @@ $(function() {
       width: 300
     }
   ];
-  var widthByClass = {
+  var widthByClass = { //should use data attributes, but this is already in place
     hash: 70,
     amp: 140,
     percent: 190,
@@ -45,112 +41,110 @@ $(function() {
   var startPause = 'never been run';
   var score = 0;
   var lives;
-  var livesDisplay = document.querySelectorAll('span')[1];
+  var $livesDisplay = $('span').eq(1);
   var timesFourForBrickNumber = 5;
-  var currentLevel = 1
-  var levelsSkipped = []
-  var infiniteLevelSetBoardInt; //if I name it inside a function I can't cancle it
+  var currentLevel = 1;
+  var infiniteLevelSetBoardInt; //if named in one function, can't cancle from another; hence declared here
+  var input; //likewise declared here to make accessible across functions
 
+  $('input').keydown(function(x) {
+    if (x.which === 13) {
+      input = $('input').val();
+      $('input').hide();
+      var $acknowledge = $("h4");
+      $acknowledge.text('Saved!');
+      $('.landing').append($acknowledge)
+    }
+  });
   document.addEventListener('keydown', addKeyAndSpaceStartPause);
   document.addEventListener('keyup', removeKey);
   document.querySelector('button').addEventListener('click', clickStart);
   document.querySelectorAll('h2')[0].addEventListener('click', clickStart) //start on one by default
-  document.querySelectorAll('h2')[1].addEventListener('click', function () { //start on two
+  document.querySelectorAll('h2')[1].addEventListener('click', function() { //start on two
     currentLevel = 2;
-    levelsSkipped.push(1);
     clickStart();
   })
-  document.querySelectorAll('h2')[2].addEventListener('click', function () { //on three
+  document.querySelectorAll('h2')[2].addEventListener('click', function() { //on three
     currentLevel = 3;
-    levelsSkipped.push(1);
-    levelsSkipped.push(2);
-    console.log(levelsSkipped)
     clickStart();
   })
-  document.querySelectorAll('h2')[3].addEventListener('click', function () { //infinite
-    currentLevel = 'Infinite';
-    levelsSkipped.push(1);
-    levelsSkipped.push(2);
-    levelsSkipped.push(3);
+  document.querySelectorAll('h2')[3].addEventListener('click', function() { //infinite
+    currentLevel = '∞';
     clickStart();
   })
 
   function addKeyAndSpaceStartPause(x) {
-    keys[x.which] = true; //adds keys to keys object (keylogger)
+    keys[x.which] = true; //keylogger
 
-    if (x.which === 32) { //start/pause w/ spacebar. If this listener callback grows I'll separate things out
+    if (x.which === 32 && document.activeElement != document.querySelector('input')) { //start/pause w/ spacebar, if the input is not in focus
       if (startPause === 'never been run') {
         setLevel();
-        // startPause = 'run';
       } else if (startPause === 'run') {
         startPause = 'stop';
+        if (currentLevel === '∞') {
+          clearInterval(infiniteLevelSetBoardInt) //else the board keeps accumulating objects when paused
+        }
       } else if (startPause === 'stop') {
         startPause = 'run';
+        if (currentLevel === '∞') {
+          infiniteLevelSetBoardInt = setInterval(function() {
+            setBoard();
+          }, 8000);
+        }
       }
     }
   };
 
   function clickStart() {
     if (startPause === 'never been run') {
-      document.querySelector('.gamewindow').setAttribute('class', 'gamewindow animate');
-      document.querySelector('button').setAttribute('class', 'animate');
-      document.querySelector('.landing').setAttribute('class', 'landing animate');
+      //class changes cue animations
+      $('.gamewindow').attr('class', 'gamewindow animate');
+      $('button').attr('class', 'animate');
+      $('.landing').attr('class', 'landing animate');
+      //input just goes away
+      $('input').css('display', 'none');
       setTimeout(setLevel, 1500);
-      // startPause = 'run';
     }
   };
 
   function setLevel() {
-    document.querySelectorAll('span')[0].textContent = 'Level: ' + currentLevel;
-    if (currentLevel === 1) {
-      timesFourForBrickNumber = 2500;  //score is 20
-      paddleVelocity = 7;
-      ballVertVelocity = 5;
-      ballHorVelocity = 5;
-      lives = 4;
+    $('span').eq(0).text('Level: ' + currentLevel);
+    //reset the board. Unlike ball, paddle only drawn when keydown: forcing it to reset here
+    paddleLeft = 0
+    paddle.style.left = '0px'
+    ballVertPos = 560;
+    ballHorPos = 0;
+    ballVertVelocity = -5;
+    ballHorVelocity = 5;
 
+    if (currentLevel === 1) { //really wanna mess with paddle size, ball speed. Most speed adjustments require major math changes
+      timesFourForBrickNumber = 1;
+      paddleVelocity = 7;
+      lives = 4;
     }
-    if (currentLevel === 2) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
-      paddle.style.left = '0px' //Paddle only positioned when keydown is registered
-      paddleLeft = 0
-      timesFourForBrickNumber = 3;  //score is 60
+    if (currentLevel === 2) {
+      timesFourForBrickNumber = 3;
       paddleVelocity = 6;
-      ballVertVelocity = -5;
-      ballHorVelocity = 5;
       lives = 3;
-      ballVertPos = 560;
-      ballHorPos = 0;
     }
-    if (currentLevel === 3) {  //really wanna mess with paddle size, ball speed. what collision variables do you need to change to do that?
-      paddle.style.left = '0px'
-      paddleLeft = 0;
-      timesFourForBrickNumber = 10;  //score is 200
+    if (currentLevel === 3) {
+      timesFourForBrickNumber = 10;
       paddleVelocity = 8;
-      ballVertVelocity = -5;
-      ballHorVelocity = 5;
       lives = 2;
-      ballVertPos = 560;
-      ballHorPos = 0;
     }
-    if (currentLevel === 'Infinite') {
-      paddle.style.left = '0px'
-      paddleLeft = 0;
+    if (currentLevel === '∞') {
       timesFourForBrickNumber = 2;
       paddleVelocity = 8;
-      ballVertVelocity = -5;
-      ballHorVelocity = 5;
       lives = 3;
-      ballVertPos = 560;
-      ballHorPos = 0;
-      infiniteLevelSetBoardInt = setInterval(function () {
+      infiniteLevelSetBoardInt = setInterval(function() {
         setBoard();
-      }, 5000);
+      }, 8000);
     }
     var livesString = ""
-    for (var i=0; i<lives; i++) {
+    for (var i = 0; i < lives; i++) {
       livesString += '@';
     }
-    livesDisplay.textContent = 'Lives: ' +  livesString;
+    $livesDisplay.text('Lives: ' + livesString);
     startGameAnimation();
   }
 
@@ -162,7 +156,7 @@ $(function() {
     setBoard();
     if (startPause === 'never been run') {
       startPause = 'run';
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(gameLoop); //weird to have the line that kicks it all off buried here, but that's a product of multiple start options
     }
     if (startPause === 'stop') {
       startPause = 'run'
@@ -172,12 +166,14 @@ $(function() {
   function setBoard() {
     for (var j = 0; j < timesFourForBrickNumber; j++) {
       for (var i = 0; i < assets.length; i++) {
-        var brick = document.createElement('div');
-        brick.setAttribute('class', `brick ${assets[i].class}`);
-        brick.style.backgroundImage = 'url("' + assets[i].url + '")';
-        brick.style.top = Math.random() * 275 + 'px';
-        brick.style.left = Math.random() * (800 - assets[i].width) + 'px';
-        gameFrame.appendChild(brick);
+        var $brick = $('<div>');
+        $brick.attr('class', `brick ${assets[i].class}`);
+        $brick.css({
+          backgroundImage: 'url("' + assets[i].url + '")',
+          top: Math.random() * 275 + 'px',
+          left: Math.random() * (800 - assets[i].width) + 'px'
+        });
+        $gameFrame.append($brick);
       }
     }
   };
@@ -203,15 +199,20 @@ $(function() {
   function ballPaddleCollisionCheck() {
     if (ballVertPos >= 585) {
       if (ballHorPos >= paddleLeft && ballHorPos <= paddleLeft + 125) {
-        console.log('collision! call spincheck');
         spinCheck();
-      } else {
+      } else { //if it doesn't hit the paddle
         lives--
-        var livesString = ''    //purely stylistic. I like the symbols more than a number
-        for (var i=0; i<lives; i++) {
+        $livesDisplay.css('background-color', 'rgba(128, 0, 0, .4)')
+        $gameFrame.css('background-color', 'rgba(128, 0, 0, .4)')
+        var livesString = '' //purely stylistic. I like the symbols more than a number
+        for (var i = 0; i < lives; i++) {
           livesString += '@'
         }
-        livesDisplay.textContent = 'Lives: ' + livesString;
+        $livesDisplay.text('Lives: ' + livesString);
+        setTimeout(function() {
+          $livesDisplay.css('background-color', 'white')
+          $gameFrame.css('background-color', 'white')
+        }, 400)
       }
     }
   };
@@ -259,11 +260,11 @@ $(function() {
     };
   };
 
-  function ballBrickCollisionCheck() {
+  function ballBrickCollisionCheck() { //need to keep working on this
     document.querySelectorAll('.brick').forEach(x => {
       var top = parseFloat(x.style.top.split('px')[0]);
       var left = parseFloat(x.style.left.split('px')[0]);
-      var right = widthByClass[x.classList[1]]; //data attributes would be much cleaner. But this works, and priorities say new features are more important
+      var right = widthByClass[x.classList[1]];
       //left edge. Sequence of elses is arbitrary; leaving them as naked ifs led to multiple delete attempts on some corner strikes
       if (ballHorPos >= left && ballHorPos <= (left + 10) && ballVertPos >= top && ballVertPos <= (top + 50)) {
         x.parentNode.removeChild(x);
@@ -292,40 +293,57 @@ $(function() {
     document.querySelectorAll('span')[2].textContent = 'Score: ' + score;
   }
 
-  function endGameNextLevelCheck() {   //cue score screen here
-    // if (lives < 0) {
-    //   livesDisplay.textContent = 'Lives: ' + 'DEAD';
-    //   startPause = 'stop';
-    //   clearInterval(infiniteLevelSetBoardInt)
-    // }
-    if (score === 200000000 && currentLevel === 1) { //20
+  function endGameNextLevelCheck() {
+    var $p = $('p')
+    if (lives < 0) {
       startPause = 'stop';
-      setTimeout(function () {
-        currentLevel = 2;
-        setLevel();
-      }, 2000)
+      clearInterval(infiniteLevelSetBoardInt)
+      drawScorePage();
     }
-    if (score === 80 && currentLevel === 2 ||
-      currentLevel === 2 && levelsSkipped[0] === 1 && score === 60) { //starting at two
+    var bricks = document.querySelectorAll('.brick') //annoying to query this over and over again, but need a current list
+    //getElementsByClassName outside of functions doesn't work either, because at the start there's nothing to get so it errors
+    if (bricks.length === 0) {
+      if (currentLevel < 3) {
+        currentLevel++
+      } else {
+        currentLevel = '∞'
+      }
+      $p.text(currentLevel)
       startPause = 'stop';
-      setTimeout(function () {
-        currentLevel = 3;
-        setLevel();
-      }, 2000)
-    }
-    if (score === 280 && currentLevel === 3 ||
-      score === 260 && levelsSkipped.length === 1 && currentLevel === 3 || //start at 2
-      score === 200 && levelsSkipped.length === 2 && currentLevel === 3) { //start at three
-      startPause = 'stop';
-      setTimeout(function () {
-        currentLevel = 'Infinite';
-        setLevel();
-      }, 2000)
+      $p.fadeIn(500, function() {
+        $p.fadeOut(500, function() {
+          setLevel();
+        })
+      })
     }
   }
 
+  function drawScorePage() {
+    $livesDisplay.text('Lives: DEAD');
+    if (input) localStorage[input] = score;
+    document.querySelectorAll('.brick').forEach(x => x.style.display = 'none')
+    $('header').eq(1).text('YOUR SCORE: ' + score);
+    document.querySelector('.score').style.display = 'block';
+    var scoreList = []; // to order results from localStorage
+    for (var i in localStorage) {
+      scoreList.push([i, localStorage[i]])
+    }
+    scoreList.sort((a, b) => b[1] - a[1])
+    scoreList.slice(0, 6).forEach(x => {
+      var $nameScore = $('<h2>');
+      $nameScore.text(x[0] + ": " + x[1]);
+      $('.score').append($nameScore)
+    })
+    var $reload = $('<button>');
+    $reload.text("<<back to start>>")
+    $reload.click(function() {
+      location.reload()
+    })
+    $gameFrame.append($reload)
+  }
+
   function gameLoop() {
-    if (startPause === 'run') {
+    if (startPause === 'run') { //the recursion never stops, it just doesn't execute anything after space is hit
       endGameNextLevelCheck();
       movePaddleLeft();
       movePaddleRight();

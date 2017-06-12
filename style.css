@@ -19,13 +19,20 @@ body {
   display: none;
 }
 
-header {
-  font-size: 75px;
+.gamewindow {
+  height: 600px;
+  width: 800px;
+  margin: 50px auto;
+  background-color: white;
+  position: relative;
+  border: 2px solid black;
+  padding-right: 4px;
+  border-radius: 5px;
+  text-align: center;
 }
 
-h2 {
-  margin-top: 40px;
-  text-align: center;
+header {
+  font-size: 75px;
 }
 
 h3 {
@@ -34,9 +41,26 @@ h3 {
   font-style: italic;
 }
 
-p {
+h4 {
   font-size: 13px;
   font-style: italic;
+  font-weight: normal;
+}
+
+h2 {
+  margin-top: 40px;
+  text-align: center;
+}
+
+p {
+  display: none;
+  position: absolute;
+  margin: 0 auto;
+  left: 40%;
+  top: 25%;
+  font-size: 300px;
+  background-color: black;
+  color: white;
 }
 
 button {
@@ -47,6 +71,15 @@ button {
   font-size: 13px;
 }
 
+input {
+  display: block;
+  margin: 10px auto;
+  width: 150px;
+  font-style: italic;
+  text-align: center;
+  padding: 5px;
+  border-radius: 5px;
+}
 button:active, button:focus {
   outline: grey;
 }
@@ -107,16 +140,8 @@ button.animate {
   }
 }
 
-.gamewindow {
-  height: 600px;
-  width: 800px;
-  margin: 50px auto;
-  background-color: white;
-  position: relative;
-  border: 2px solid black;
-  padding-right: 4px;
-  border-radius: 5px;
-  text-align: center;
+.score {
+  display: none;
 }
 
 .paddle {
