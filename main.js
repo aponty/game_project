@@ -7,9 +7,9 @@ $(function() {
   var paddleVelocity = 7; //ok to change a little
   var ball = document.querySelector('.ball');
   var ballVertPos = 560;
-  var ballVertVelocity = 5; //can't change, jumps borders
+  var ballVertVelocity = 5; //can't change much, jumps borders
   var ballHorPos = 0;
-  var ballHorVelocity = 5; //can't change, jumps borders
+  var ballHorVelocity = 5; //can't change much, jumps borders
   var assets = [{
       class: 'hash',
       url: './assets/2hash.png',
@@ -44,10 +44,11 @@ $(function() {
   var $livesDisplay = $('span').eq(1);
   var timesFourForBrickNumber = 5;
   var currentLevel = 1;
-  var infiniteLevelSetBoardInt; //if named in one function, can't cancle from another; hence declared here
-  var input; //likewise declared here to make accessible across functions
+  var infiniteLevelSetBoardInt;
+  var input;
+  var spin = .75;
 
-  $('input').keydown(function(x) {
+  $('input').keydown(function(x) { //jazzing up the imput box
     if (x.which === 13) {
       input = $('input').val();
       $('input').hide();
@@ -121,21 +122,25 @@ $(function() {
       timesFourForBrickNumber = 1;
       paddleVelocity = 7;
       lives = 4;
+      spin = .95
     }
     if (currentLevel === 2) {
       timesFourForBrickNumber = 3;
       paddleVelocity = 6;
       lives = 3;
+      spin = .85
     }
     if (currentLevel === 3) {
       timesFourForBrickNumber = 10;
       paddleVelocity = 8;
       lives = 2;
+      spin = .75
     }
     if (currentLevel === '∞') {
       timesFourForBrickNumber = 2;
       paddleVelocity = 8;
       lives = 3;
+      spin = .75
       infiniteLevelSetBoardInt = setInterval(function() {
         setBoard();
       }, 8000);
@@ -218,32 +223,32 @@ $(function() {
   };
 
   function spinCheck() {
-    var z = Math.sqrt((Math.pow(ballHorVelocity, 2) + Math.pow(ballVertVelocity, 2) - Math.pow(.75 * ballVertVelocity, 2)) / Math.pow(ballHorVelocity, 2));
-    var m = Math.sqrt((Math.pow(ballVertVelocity, 2) + Math.pow(ballHorVelocity, 2) - Math.pow(.75 * ballHorVelocity, 2)) / Math.pow(ballVertVelocity, 2));
+    var z = Math.sqrt((Math.pow(ballHorVelocity, 2) + Math.pow(ballVertVelocity, 2) - Math.pow(spin * ballVertVelocity, 2)) / Math.pow(ballHorVelocity, 2));
+    var m = Math.sqrt((Math.pow(ballVertVelocity, 2) + Math.pow(ballHorVelocity, 2) - Math.pow(spin * ballHorVelocity, 2)) / Math.pow(ballVertVelocity, 2));
 
     //if paddle right and ball right
     if (keys[39] && paddleLeft < 675 && ballHorVelocity > 0) {
-      ballVertVelocity *= .75;
+      ballVertVelocity *= spin;
       ballHorVelocity *= z;
-      console.log('spun flat');
+      console.log('spun flat!');
     }
     //if paddle right and ball left
     if (keys[39] && paddleLeft < 675 && ballHorVelocity < 0) {
       ballVertVelocity *= m;
-      ballHorVelocity *= .75;
-      console.log('spun up');
+      ballHorVelocity *= spin;
+      console.log('spun up!');
     }
     //if paddle left and ball right
     if (keys[37] && paddleLeft >= 1 && ballHorVelocity > 0) {
       ballVertVelocity *= m;
-      ballHorVelocity *= .75;
-      console.log('spun up');
+      ballHorVelocity *= spin;
+      console.log('spun up!');
     }
     //if paddle left and ball left
     if (keys[37] && paddleLeft >= 1 && ballHorVelocity < 0) {
-      ballVertVelocity *= .75;
+      ballVertVelocity *= spin;
       ballHorVelocity *= z;
-      console.log('spun flat');
+      console.log('spun flat!');
     }
   };
 
@@ -260,32 +265,24 @@ $(function() {
     };
   };
 
-  function ballBrickCollisionCheck() { //need to keep working on this
+  function ballBrickCollisionCheck() {
     document.querySelectorAll('.brick').forEach(x => {
       var top = parseFloat(x.style.top.split('px')[0]);
       var left = parseFloat(x.style.left.split('px')[0]);
-      var right = widthByClass[x.classList[1]];
-      //left edge. Sequence of elses is arbitrary; leaving them as naked ifs led to multiple delete attempts on some corner strikes
-      if (ballHorPos >= left && ballHorPos <= (left + 10) && ballVertPos >= top && ballVertPos <= (top + 50)) {
-        x.parentNode.removeChild(x);
-        score += 5;
-        ballHorVelocity = -ballHorVelocity;
-      } else //bottom edge. Need to pick edges specifically to bounce horizontal vs vert. === to bottom edge gets jumped over. Added 10px fuzz
-        if (ballVertPos <= (top + 50) && ballVertPos >= (top + 40) && ballHorPos >= left && ballHorPos <= (left + right)) {
+      var width = widthByClass[x.classList[1]];
+      var ballHC = ballHorPos + 5; //horizontal center
+
+      if (ballVertPos <= (top + 50) && ballVertPos >= top && ballHorPos >= left && ballHorPos <= (left + width)) { //if there's any overlap
+        if (ballHC - 10 > left && ballHC + 10 < left + width) {  //overlap + the ball's center not within the horizonal bounds means coming from top or bottom. + 10px fuzz because animation variations
+          ballVertVelocity = -ballVertVelocity; //so vertical bounce.
           x.parentNode.removeChild(x);
           score += 5;
-          ballVertVelocity = -ballVertVelocity;
-        } else //right edge
-          if (ballHorPos <= (left + right) && ballHorPos >= (left + right - 10) && ballVertPos >= top && ballVertPos <= (top + 50)) {
-            x.parentNode.removeChild(x);
-            score += 5;
-            ballHorVelocity = -ballHorVelocity;
-          } else //top edge
-            if (ballVertPos >= top && ballVertPos <= (top + 10) && ballHorPos >= left && ballHorPos <= (left + right)) {
-              x.parentNode.removeChild(x);
-              score += 5;
-              ballVertVelocity = -ballVertVelocity;
-            }
+        } else {
+          score += 5;
+          ballHorVelocity = -ballHorVelocity;  // else horizontal bounce.
+          x.parentNode.removeChild(x);
+        }
+      }
     })
   };
 
@@ -321,7 +318,9 @@ $(function() {
   function drawScorePage() {
     $livesDisplay.text('Lives: DEAD');
     if (input) localStorage[input] = score;
-    document.querySelectorAll('.brick').forEach(x => x.style.display = 'none')
+    document.querySelectorAll('.brick').forEach(x => x.style.display = 'none');
+    document.querySelector('.paddle').style.display = 'none';
+    document.querySelector('.ball').style.display = 'none';
     $('header').eq(1).text('YOUR SCORE: ' + score);
     document.querySelector('.score').style.display = 'block';
     var scoreList = []; // to order results from localStorage
@@ -354,8 +353,4 @@ $(function() {
     }
     requestAnimationFrame(gameLoop);
   };
-
-
-
-  //jquery tag
 })

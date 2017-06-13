@@ -80,6 +80,7 @@ input {
   padding: 5px;
   border-radius: 5px;
 }
+
 button:active, button:focus {
   outline: grey;
 }
