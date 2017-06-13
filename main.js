@@ -1,6 +1,6 @@
 $(function() {
   // help with cleaning up oscilation logic from  here http://isaacsukin.com/news/2015/01/detailed-explanation-javascript-game-loops-and-timing
-  //and keypress object and controlling everthing in a gameLogic fn set to interval here- https://stackoverflow.com/questions/13538168/is-it-possible-to-make-jquery-keydown-respond-faster
+  //and keypress object and controlling everthing in a gameLogic fn set to interval here- https: //stackoverflow.com/questions/13538168/is-it-possible-to-make-jquery-keydown-respond-faster
   var $gameFrame = $('.gamewindow')
   var paddle = document.querySelector('.paddle');
   var paddleLeft = 0;
@@ -83,7 +83,7 @@ $(function() {
       } else if (startPause === 'run') {
         startPause = 'stop';
         if (currentLevel === '∞') {
-          clearInterval(infiniteLevelSetBoardInt) //else the board keeps accumulating objects when paused
+          clearInterval(infiniteLevelSetBoardInt) //prevents the board from accumulating objects when paused
         }
       } else if (startPause === 'stop') {
         startPause = 'run';
@@ -96,9 +96,13 @@ $(function() {
     }
   };
 
+  function removeKey(x) {
+    delete keys[x.which];
+  };
+
   function clickStart() {
     if (startPause === 'never been run') {
-      //class changes cue animations
+      //class changes cue CSS animations
       $('.gamewindow').attr('class', 'gamewindow animate');
       $('button').attr('class', 'animate');
       $('.landing').attr('class', 'landing animate');
@@ -118,7 +122,7 @@ $(function() {
     ballVertVelocity = -5;
     ballHorVelocity = 5;
 
-    if (currentLevel === 1) { //really wanna mess with paddle size, ball speed. Most speed adjustments require major math changes
+    if (currentLevel === 1) { //really wanna mess with paddle size, ball speed. However, most speed adjustments require major math changes
       timesFourForBrickNumber = 1;
       paddleVelocity = 7;
       lives = 4;
@@ -141,11 +145,11 @@ $(function() {
       paddleVelocity = 8;
       lives = 3;
       spin = .75
-      infiniteLevelSetBoardInt = setInterval(function() {
+      infiniteLevelSetBoardInt = setInterval(function() { //could add a random factor to this, but didn't get to it
         setBoard();
       }, 8000);
     }
-    var livesString = ""
+    var livesString = ""  //just asthetic. I like the lives being a string instead of a number
     for (var i = 0; i < lives; i++) {
       livesString += '@';
     }
@@ -168,7 +172,7 @@ $(function() {
     }
   };
 
-  function setBoard() {
+  function setBoard() { //draws the board (places the bricks) based on level variables when called
     for (var j = 0; j < timesFourForBrickNumber; j++) {
       for (var i = 0; i < assets.length; i++) {
         var $brick = $('<div>');
@@ -181,10 +185,6 @@ $(function() {
         $gameFrame.append($brick);
       }
     }
-  };
-
-  function removeKey(x) {
-    delete keys[x.which];
   };
 
   function movePaddleLeft() {
@@ -209,7 +209,7 @@ $(function() {
         lives--
         $livesDisplay.css('background-color', 'rgba(128, 0, 0, .4)')
         $gameFrame.css('background-color', 'rgba(128, 0, 0, .4)')
-        var livesString = '' //purely stylistic. I like the symbols more than a number
+        var livesString = '' //again, purely stylistic. I like the symbols more than a number
         for (var i = 0; i < lives; i++) {
           livesString += '@'
         }
@@ -223,6 +223,7 @@ $(function() {
   };
 
   function spinCheck() {
+    //calculates factor to multiply slope by without affecting total speed (hypotenuse). Pythagoras; keeping c^2 the same means (a*z)^2 + (b * m)^2 = a^2 + b^2, solved here for z and m
     var z = Math.sqrt((Math.pow(ballHorVelocity, 2) + Math.pow(ballVertVelocity, 2) - Math.pow(spin * ballVertVelocity, 2)) / Math.pow(ballHorVelocity, 2));
     var m = Math.sqrt((Math.pow(ballVertVelocity, 2) + Math.pow(ballHorVelocity, 2) - Math.pow(spin * ballHorVelocity, 2)) / Math.pow(ballVertVelocity, 2));
 
@@ -273,14 +274,14 @@ $(function() {
       var ballHC = ballHorPos + 5; //horizontal center
 
       if (ballVertPos <= (top + 50) && ballVertPos >= top && ballHorPos >= left && ballHorPos <= (left + width)) { //if there's any overlap
-        if (ballHC - 10 > left && ballHC + 10 < left + width) {  //overlap + the ball's center not within the horizonal bounds means coming from top or bottom. + 10px fuzz because animation variations
+        if (ballHC - 10 > left && ballHC + 10 < left + width) { //if overlap and the ball's center not within the horizonal bounds means coming from top or bottom. + 10px fuzz because animation variations
           ballVertVelocity = -ballVertVelocity; //so vertical bounce.
           x.parentNode.removeChild(x);
           score += 5;
         } else {
-          score += 5;
-          ballHorVelocity = -ballHorVelocity;  // else horizontal bounce.
+          ballHorVelocity = -ballHorVelocity; // else horizontal bounce.
           x.parentNode.removeChild(x);
+          score += 5;
         }
       }
     })
